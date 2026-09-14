@@ -628,7 +628,7 @@ const CONFIG = {
   // de mexer nas pastas do Drive, acesse o site assim:
   // https://SEU-SITE/?admin=SEU_CODIGO_AQUI
   // Troque o valor abaixo por algo só seu (evite palavras óbvias).
-  adminAccessCode: "kardac16",
+  adminAccessCode: "TROQUE-ESTE-CODIGO-SECRETO",
 
   // Mensagens do placar/ticker no topo do catálogo
   tickerMessages: [
@@ -672,8 +672,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ctaWspBtn').addEventListener('click', (e) => { e.preventDefault(); openOrderDrawer(); });
 
   buildTicker();
-  loadCatalog();
   setupAdminAccess();
+  loadCatalog();
 });
 
 /* ============================================================
@@ -681,10 +681,12 @@ document.addEventListener('DOMContentLoaded', () => {
    Só aparece se a URL tiver ?admin=CODIGO igual ao configurado.
    Ex.: https://seu-site.github.io/fanaticos-store/?admin=SEU_CODIGO
    ============================================================ */
+let IS_ADMIN = false;
 function setupAdminAccess(){
   const params = new URLSearchParams(window.location.search);
   const code = params.get('admin');
   const isAdmin = code && CONFIG.adminAccessCode && code === CONFIG.adminAccessCode;
+  IS_ADMIN = !!isAdmin;
 
   const btn = document.getElementById('adminRefreshBtn');
   if (!isAdmin){
@@ -760,7 +762,9 @@ async function loadCatalog(forceRefresh){
     }
   } catch(err){
     console.error("Erro ao carregar Google Drive:", err);
-    statusEl.textContent = "Não foi possível carregar o Drive agora. Mostrando catálogo de demonstração.";
+    statusEl.textContent = IS_ADMIN
+      ? `Erro ao carregar o Drive: ${err.message}`
+      : "Não foi possível carregar o Drive agora. Mostrando catálogo de demonstração.";
     CATALOG = demoCatalog();
   }
 
@@ -830,7 +834,14 @@ function mapDriveImageToItem(img, nameChain){
 async function driveApiRequest(query, fields){
   const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=${encodeURIComponent(fields)}&pageSize=100&key=${CONFIG.googleApiKey}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Falha na requisição ao Google Drive (verifique a chave de API e o compartilhamento da pasta).");
+  if (!res.ok){
+    let detail = '';
+    try{
+      const errJson = await res.json();
+      detail = errJson && errJson.error && errJson.error.message ? errJson.error.message : '';
+    } catch(e){ /* resposta sem JSON legível */ }
+    throw new Error(`Google Drive respondeu ${res.status}${detail ? " — " + detail : ""}`);
+  }
   const data = await res.json();
   return data.files || [];
 }
