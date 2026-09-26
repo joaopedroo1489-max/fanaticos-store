@@ -282,6 +282,87 @@
     background:#f2f4f1; padding:2px 7px; border-radius:5px; font-family:var(--font-mono); font-size:12.5px;
   }
 
+  /* Card de time (logo + nome), abre o modal de modelos */
+  .team-card{cursor:pointer;}
+  .team-card .card-media{
+    display:flex; align-items:center; justify-content:center; background:linear-gradient(160deg,#f4f6f4,#e7ece7);
+  }
+  .team-card .card-media img.team-logo{ width:56%; height:56%; object-fit:contain; }
+  .team-card .card-media img.team-cover{ width:100%; height:100%; object-fit:cover; }
+  .team-card .card-body{ align-items:center; text-align:center; }
+  .team-card .model-count{ font-family:var(--font-mono); font-size:11.5px; color:var(--chalk); }
+
+  /* ============================================================
+     MODAL: MODELOS DO TIME
+  ============================================================ */
+  .team-overlay, .gallery-overlay{
+    position:fixed; inset:0; background:rgba(6,15,11,0.6); backdrop-filter:blur(2px);
+    z-index:95; opacity:0; pointer-events:none; transition:opacity .25s;
+  }
+  .team-overlay.open, .gallery-overlay.open{opacity:1; pointer-events:auto;}
+
+  .team-modal{
+    position:fixed; top:4vh; left:50%; transform:translate(-50%, 16px);
+    width:min(920px, 94vw); max-height:92vh; background:#fff; border-radius:20px;
+    z-index:96; box-shadow:var(--shadow-lg); display:flex; flex-direction:column;
+    opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+  }
+  .team-modal.open{opacity:1; pointer-events:auto; transform:translate(-50%, 0);}
+
+  .team-modal-head{
+    background:var(--pitch-dark); color:var(--floodlight); padding:20px 24px;
+    border-radius:20px 20px 0 0; display:flex; justify-content:space-between; align-items:center;
+  }
+  .team-modal-id{display:flex; align-items:center; gap:14px;}
+  .team-modal-logo{width:52px; height:52px; object-fit:contain; background:#fff; border-radius:10px; padding:6px;}
+  .team-modal-league{font-family:var(--font-mono); font-size:11px; color:var(--gold-soft); text-transform:uppercase;}
+  .team-modal-head h3{font-family:var(--font-display); font-size:22px; letter-spacing:.01em;}
+
+  .team-modal-body{padding:24px; overflow-y:auto; flex:1;}
+  .model-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  @media (max-width:700px){.model-grid{grid-template-columns:repeat(2,1fr);}}
+  .model-card{
+    border-radius:12px; overflow:hidden; border:1px solid var(--line-soft); cursor:pointer;
+    transition:transform .18s, box-shadow .18s;
+  }
+  .model-card:hover{transform:translateY(-4px); box-shadow:var(--shadow-sm);}
+  .model-card .model-cover{aspect-ratio:4/5; background:#f0f2f0;}
+  .model-card .model-cover img{width:100%; height:100%; object-fit:cover;}
+  .model-card .model-label{padding:10px 12px; font-size:13.5px; font-weight:700;}
+
+  /* ============================================================
+     MODAL: GALERIA DE FOTOS (frente / costas / lateral / detalhe)
+  ============================================================ */
+  .gallery-modal{
+    position:fixed; top:3vh; left:50%; transform:translate(-50%, 16px);
+    width:min(720px, 94vw); max-height:94vh; background:#fff; border-radius:20px;
+    z-index:97; box-shadow:var(--shadow-lg); display:flex; flex-direction:column;
+    opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; overflow:hidden;
+  }
+  .gallery-modal.open{opacity:1; pointer-events:auto; transform:translate(-50%, 0);}
+  .gallery-close{position:absolute; top:14px; right:16px; z-index:2; color:#fff; background:rgba(0,0,0,0.35); border-radius:50%; width:34px; height:34px;}
+  .gallery-back{
+    position:absolute; top:16px; left:16px; z-index:2; color:#fff; background:rgba(0,0,0,0.35);
+    padding:8px 14px; border-radius:999px; font-size:12.5px; font-weight:700;
+  }
+  .gallery-main{aspect-ratio:4/5; background:#eef1ee;}
+  .gallery-main img{width:100%; height:100%; object-fit:contain; background:#0A1F17;}
+  .gallery-thumbs{display:flex; gap:8px; padding:12px 16px; overflow-x:auto;}
+  .gallery-thumb{
+    width:64px; height:64px; border-radius:8px; overflow:hidden; flex-shrink:0; cursor:pointer;
+    border:2px solid transparent; opacity:.7; transition:all .15s;
+  }
+  .gallery-thumb.active{border-color:var(--turf); opacity:1;}
+  .gallery-thumb img{width:100%; height:100%; object-fit:cover;}
+  .gallery-thumb .thumb-label{display:none;}
+  .gallery-foot{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    padding:14px 18px; border-top:1px solid var(--line-soft);
+  }
+  .gallery-team{font-size:12px; color:var(--chalk); font-family:var(--font-mono); text-transform:uppercase;}
+  .gallery-model{font-size:15px; font-weight:700;}
+  .gallery-foot .btn{padding:12px 18px; font-size:13.5px; white-space:nowrap;}
+
   /* ============================================================
      GALERIA / CONFIANÇA
   ============================================================ */
@@ -570,6 +651,40 @@
   <span class="admin-refresh-icon">↻</span> Atualizar catálogo
 </button>
 
+<!-- ================= MODAL: MODELOS DO TIME ================= -->
+<div class="team-overlay" id="teamOverlay"></div>
+<div class="team-modal" id="teamModal" role="dialog" aria-label="Modelos do time">
+  <div class="team-modal-head">
+    <div class="team-modal-id">
+      <img id="teamModalLogo" class="team-modal-logo" alt="" />
+      <div>
+        <div class="team-modal-league" id="teamModalLeague"></div>
+        <h3 id="teamModalName"></h3>
+      </div>
+    </div>
+    <button class="order-close" id="teamModalCloseBtn" aria-label="Fechar">&times;</button>
+  </div>
+  <div class="team-modal-body" id="teamModalBody"></div>
+</div>
+
+<!-- ================= MODAL: GALERIA DE FOTOS DO MODELO ================= -->
+<div class="gallery-overlay" id="galleryOverlay"></div>
+<div class="gallery-modal" id="galleryModal" role="dialog" aria-label="Fotos da camisa">
+  <button class="order-close gallery-close" id="galleryCloseBtn" aria-label="Fechar">&times;</button>
+  <button class="gallery-back" id="galleryBackBtn">&larr; Voltar aos modelos</button>
+  <div class="gallery-main">
+    <img id="galleryMainImg" alt="" />
+  </div>
+  <div class="gallery-thumbs" id="galleryThumbs"></div>
+  <div class="gallery-foot">
+    <div>
+      <div class="gallery-team" id="galleryTeamName"></div>
+      <div class="gallery-model" id="galleryModelName"></div>
+    </div>
+    <button class="btn btn-primary" id="galleryBuyBtn">Comprar este modelo</button>
+  </div>
+</div>
+
 <!-- ================= ASSISTENTE DE PEDIDO ================= -->
 <div class="order-overlay" id="orderOverlay"></div>
 <div class="order-drawer" id="orderDrawer" role="dialog" aria-label="Assistente de pedido">
@@ -713,15 +828,24 @@ function buildTicker(){
 
 /* ============================================================
    CATÁLOGO — carregado da pasta do Google Drive
-   Estrutura da sua pasta:
-   Pasta principal > Internacional/Nacional > Liga > Clube > Fotos das Camisas > fotos
-   O carregador abaixo é flexível: percorre a árvore inteira de
-   subpastas (em qualquer profundidade) e, assim que encontra uma
-   pasta com imagens dentro, transforma cada imagem em um produto,
-   usando o caminho de pastas para identificar categoria/liga/clube.
+   Estrutura esperada de pastas:
+   Pasta principal > Internacional/Nacional > Liga > Clube > [logo.png opcional]
+                                                            > Fotos das Camisas > Modelo (ex: "Titular 24-25") > frente/costas/lateral/detalhe.jpg
+   Também aceita o formato mais simples (ex.: Seleções):
+   Pasta principal > Seleções > País > fotos soltas (sem pasta de modelo)
    ============================================================ */
-let CATALOG = []; // { category, league, team, model, imageUrl, fileId }
+let TEAMS = []; // { category, league, team, logoUrl, models:[{name, coverUrl, images:[{angleKey, angleLabel, url, fileId}]}] }
 const MAX_DRIVE_DEPTH = 6; // limite de segurança para não percorrer pastas infinitamente
+
+const PHOTOS_WRAPPER_REGEX = /fotos|photos|imagens|images|camisas?/i;
+const LOGO_NAME_REGEX = /logo|escudo|brasao|brasão|shield|crest/i;
+const ANGLE_PATTERNS = [
+  { key: 'frente',  label: 'Frente',  re: /frente|front/i },
+  { key: 'costas',  label: 'Costas',  re: /costas|back|verso/i },
+  { key: 'lateral', label: 'Lateral', re: /lateral|side/i },
+  { key: 'detalhe', label: 'Detalhe', re: /detalhe|detail/i }
+];
+const ANGLE_ORDER = ['frente', 'costas', 'lateral', 'detalhe'];
 
 async function loadCatalog(forceRefresh){
   const statusEl = document.getElementById('catalogStatus');
@@ -730,49 +854,48 @@ async function loadCatalog(forceRefresh){
 
   if (!folderId || !keyOk){
     statusEl.textContent = "Catálogo de demonstração (configure a pasta e a chave de API para ver as fotos reais).";
-    CATALOG = demoCatalog();
-    renderFilters(CATALOG);
-    renderProducts(CATALOG);
+    TEAMS = demoCatalog();
+    renderFilters(TEAMS);
+    renderTeams(TEAMS);
     return;
   }
 
-  // Tenta usar o cache do navegador antes de bater no Drive de novo
   if (!forceRefresh){
     const cached = readCatalogCache();
     if (cached){
-      CATALOG = cached.items;
-      statusEl.textContent = `${CATALOG.length} peça(s) disponível(is) — carregado do cache local.`;
-      renderFilters(CATALOG);
-      renderProducts(CATALOG);
+      TEAMS = cached.items;
+      statusEl.textContent = `${TEAMS.length} time(s) disponível(is) — carregado do cache local.`;
+      renderFilters(TEAMS);
+      renderTeams(TEAMS);
       return;
     }
   }
 
   try{
-    statusEl.textContent = "Carregando fotos do mostruário (percorrendo ligas e clubes)…";
-    const items = await walkDriveFolder(folderId, []);
+    statusEl.textContent = "Carregando fotos do mostruário (percorrendo ligas e times)…";
+    const teams = await walkForTeams(folderId, []);
 
-    if (items.length === 0){
+    if (teams.length === 0){
       statusEl.textContent = "Nenhuma foto encontrada ainda. Adicione imagens dentro das pastas do Drive.";
-      CATALOG = [];
+      TEAMS = [];
     } else {
-      statusEl.textContent = `${items.length} peça(s) disponível(is) — atualizado direto do Drive.`;
-      CATALOG = items;
-      writeCatalogCache(items);
+      statusEl.textContent = `${teams.length} time(s) disponível(is) — atualizado direto do Drive.`;
+      TEAMS = teams;
+      writeCatalogCache(teams);
     }
   } catch(err){
     console.error("Erro ao carregar Google Drive:", err);
     statusEl.textContent = IS_ADMIN
       ? `Erro ao carregar o Drive: ${err.message}`
       : "Não foi possível carregar o Drive agora. Mostrando catálogo de demonstração.";
-    CATALOG = demoCatalog();
+    TEAMS = demoCatalog();
   }
 
-  renderFilters(CATALOG);
-  renderProducts(CATALOG);
+  renderFilters(TEAMS);
+  renderTeams(TEAMS);
 }
 
-const CATALOG_CACHE_KEY = 'manto_catalog_cache_v1';
+const CATALOG_CACHE_KEY = 'manto_catalog_cache_v2';
 function readCatalogCache(){
   try{
     const raw = localStorage.getItem(CATALOG_CACHE_KEY);
@@ -789,45 +912,78 @@ function writeCatalogCache(items){
   } catch(e){ /* localStorage indisponível — segue sem cache, sem quebrar o site */ }
 }
 
-// Percorre recursivamente: pastas > pastas > ... > pasta com imagens.
+// Percorre a árvore de pastas procurando "pastas de time": uma pasta que tenha
+// uma subpasta de fotos (ex: "Fotos das Camisas") OU imagens soltas dentro dela.
 // nameChain guarda os nomes das pastas percorridas até aqui (inclui a pasta atual).
-async function walkDriveFolder(folderId, nameChain, depth = 0){
-  let items = [];
+async function walkForTeams(folderId, nameChain, depth = 0){
+  const [images, subfolders] = await Promise.all([
+    driveListImages(folderId),
+    driveListFolders(folderId)
+  ]);
 
-  const images = await driveListImages(folderId);
-  if (images.length > 0){
-    images.forEach(img => items.push(mapDriveImageToItem(img, nameChain)));
+  const wrapperFolder = subfolders.find(f => PHOTOS_WRAPPER_REGEX.test(f.name));
+  const looksLikeTeamFolder = wrapperFolder || images.length > 0;
+
+  if (looksLikeTeamFolder){
+    const logoImg = images.find(f => LOGO_NAME_REGEX.test(f.name));
+    const logoUrl = logoImg ? driveImageUrl(logoImg.id) : '';
+    let models = [];
+
+    if (wrapperFolder){
+      const modelFolders = await driveListFolders(wrapperFolder.id);
+      if (modelFolders.length > 0){
+        for (const mf of modelFolders){
+          const modelImages = await driveListImages(mf.id);
+          if (modelImages.length > 0) models.push(buildModel(mf.name, modelImages));
+        }
+      } else {
+        const wrapperImages = await driveListImages(wrapperFolder.id);
+        if (wrapperImages.length > 0) models.push(buildModel("Modelo único", wrapperImages));
+      }
+    } else {
+      const nonLogoImages = images.filter(f => f.id !== (logoImg && logoImg.id));
+      if (nonLogoImages.length > 0) models.push(buildModel("Modelo único", nonLogoImages));
+    }
+
+    if (models.length === 0) return []; // pasta só com logo (ou vazia) — ainda sem fotos de venda
+
+    const category = nameChain.length >= 3 ? nameChain[nameChain.length - 3] : undefined;
+    const league   = nameChain.length >= 2 ? nameChain[nameChain.length - 2] : undefined;
+    const team     = nameChain.length >= 1 ? nameChain[nameChain.length - 1] : CONFIG.storeName;
+
+    return [{ category, league, team, logoUrl, models }];
   }
 
+  // Ainda não chegamos numa pasta de time — continua descendo (categoria/liga)
+  let results = [];
   if (depth < MAX_DRIVE_DEPTH){
-    const subfolders = await driveListFolders(folderId);
     for (const sub of subfolders){
-      const childItems = await walkDriveFolder(sub.id, [...nameChain, sub.name], depth + 1);
-      items = items.concat(childItems);
+      const found = await walkForTeams(sub.id, [...nameChain, sub.name], depth + 1);
+      results = results.concat(found);
     }
   }
-
-  return items;
+  return results;
 }
 
-// Usa o caminho de pastas (nameChain) para descobrir categoria / liga / clube.
-// Ex.: ["Internacional","Premier League","Manchester City","Fotos das Camisas"]
-//   -> category="Internacional", league="Premier League", team="Manchester City"
-function mapDriveImageToItem(img, nameChain){
-  // A última posição do caminho é a própria pasta de fotos (ex: "Fotos das Camisas"),
-  // então o clube/time é a pasta logo acima dela.
-  const chain = nameChain.slice(0, -1); // remove a pasta de fotos
-  const category = chain.length >= 3 ? chain[chain.length - 3] : undefined;
-  const league   = chain.length >= 2 ? chain[chain.length - 2] : undefined;
-  const team     = chain.length >= 1 ? chain[chain.length - 1] : CONFIG.storeName;
-
+function buildModel(name, images){
+  const angleImages = images.map(img => {
+    const angle = ANGLE_PATTERNS.find(p => p.re.test(img.name));
+    return {
+      angleKey: angle ? angle.key : null,
+      angleLabel: angle ? angle.label : img.name.replace(/\.[^/.]+$/, ""),
+      url: driveImageUrl(img.id),
+      fileId: img.id
+    };
+  });
+  angleImages.sort((a, b) => {
+    const ai = a.angleKey ? ANGLE_ORDER.indexOf(a.angleKey) : 99;
+    const bi = b.angleKey ? ANGLE_ORDER.indexOf(b.angleKey) : 99;
+    return ai - bi;
+  });
   return {
-    category,
-    league,
-    team,
-    model: img.name.replace(/\.[^/.]+$/, ""),
-    imageUrl: driveImageUrl(img.id),
-    fileId: img.id
+    name: name.replace(/\.[^/.]+$/, ""),
+    images: angleImages,
+    coverUrl: angleImages[0] ? angleImages[0].url : ''
   };
 }
 
@@ -864,28 +1020,33 @@ function demoCatalog(){
     { league: "Liga A", teams: ["Time Alpha", "Time Bravo"] },
     { league: "Liga B", teams: ["Time Charlie", "Time Delta"] }
   ];
+  const angleNames = [
+    { angleKey: 'frente', angleLabel: 'Frente', url: '', fileId: 'demo' },
+    { angleKey: 'costas', angleLabel: 'Costas', url: '', fileId: 'demo' },
+    { angleKey: 'lateral', angleLabel: 'Lateral', url: '', fileId: 'demo' },
+    { angleKey: 'detalhe', angleLabel: 'Detalhe', url: '', fileId: 'demo' }
+  ];
   const out = [];
   leagues.forEach(({league, teams}) => {
-    teams.forEach((team, i) => {
-      for (let j=1; j<=2; j++){
-        out.push({
-          category: "Internacional",
-          league,
-          team,
-          model: `Modelo ${j === 1 ? "Titular" : "Alternativo"}`,
-          imageUrl: "",
-          fileId: `demo-${league}-${i}-${j}`
-        });
-      }
+    teams.forEach((team) => {
+      out.push({
+        category: "Internacional",
+        league,
+        team,
+        logoUrl: '',
+        models: [
+          { name: "Titular", images: angleNames, coverUrl: '' },
+          { name: "Alternativa", images: angleNames, coverUrl: '' }
+        ]
+      });
     });
   });
   return out;
 }
 
 /* ============================================================
-   Renderização do catálogo
-   Filtro por liga (nível mais útil para navegar); o card mostra
-   o clube/time e, como legenda menor, a liga.
+   Renderização — filtro por liga, card de time com logo,
+   modal de modelos e modal de galeria por ângulo.
    ============================================================ */
 function groupKeyOf(item){
   return item.league || item.category || item.team;
@@ -902,41 +1063,42 @@ function renderFilters(items){
       wrap.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       const group = chip.dataset.group;
-      renderProducts(group === 'all' ? CATALOG : CATALOG.filter(i => groupKeyOf(i) === group));
+      renderTeams(group === 'all' ? TEAMS : TEAMS.filter(i => groupKeyOf(i) === group));
     });
   });
 }
 
-function renderProducts(items){
+function renderTeams(items){
   const grid = document.getElementById('productGrid');
   if (!items || items.length === 0){
-    grid.innerHTML = `<div class="empty-state">Nenhuma camisa encontrada nesta categoria ainda.</div>`;
+    grid.innerHTML = `<div class="empty-state">Nenhum time encontrado nesta liga ainda.</div>`;
     return;
   }
-  grid.innerHTML = items.map((item, idx) => `
-    <div class="card">
+  grid.innerHTML = items.map((teamItem, idx) => {
+    const cover = teamItem.logoUrl || (teamItem.models[0] && teamItem.models[0].coverUrl) || '';
+    const isLogo = !!teamItem.logoUrl;
+    const modelCount = teamItem.models.length;
+    return `
+    <div class="card team-card" data-team-idx="${idx}">
       <div class="card-media">
-        ${item.imageUrl
-          ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.team)} — ${escapeHtml(item.model)}" loading="lazy">`
+        ${cover
+          ? `<img class="${isLogo ? 'team-logo' : 'team-cover'}" src="${cover}" alt="${escapeHtml(teamItem.team)}" loading="lazy">`
           : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8a978f;font-family:var(--font-mono);font-size:12px;">FOTO EM BREVE</div>`}
         ${idx < 3 ? `<span class="card-badge">Novo</span>` : ``}
-        <div class="card-nameplate">
-          ${item.league ? `<div style="font-family:var(--font-mono); font-size:10px; opacity:.75; text-transform:uppercase; letter-spacing:.04em;">${escapeHtml(item.league)}</div>` : ``}
-          <div class="team">${escapeHtml(item.team)}</div>
-        </div>
+        ${!isLogo ? `<div class="card-nameplate">
+          ${teamItem.league ? `<div style="font-family:var(--font-mono); font-size:10px; opacity:.75; text-transform:uppercase; letter-spacing:.04em;">${escapeHtml(teamItem.league)}</div>` : ``}
+        </div>` : ``}
       </div>
       <div class="card-body">
-        <div class="card-model">${escapeHtml(item.model)}</div>
-        <div class="card-meta">
-          <span class="card-price">${CONFIG.defaultPrice}</span>
-          <button class="card-buy" data-team="${escapeHtml(item.team)}" data-model="${escapeHtml(item.model)}">Comprar</button>
-        </div>
+        <div class="card-model">${escapeHtml(teamItem.team)}</div>
+        <div class="model-count">${modelCount} modelo${modelCount > 1 ? 's' : ''} disponível${modelCount > 1 ? 'is' : ''}</div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
-  grid.querySelectorAll('.card-buy').forEach(btn => {
-    btn.addEventListener('click', () => openOrderDrawer({ team: btn.dataset.team, model: btn.dataset.model }));
+  grid.querySelectorAll('.team-card').forEach(card => {
+    card.addEventListener('click', () => openTeamModal(items[Number(card.dataset.teamIdx)]));
   });
 }
 
@@ -945,6 +1107,87 @@ function escapeHtml(str){
   div.textContent = str;
   return div.innerHTML;
 }
+
+/* ---- Modal: modelos de um time ---- */
+let CURRENT_TEAM = null;
+
+function openTeamModal(teamItem){
+  CURRENT_TEAM = teamItem;
+  document.getElementById('teamModalLogo').src = teamItem.logoUrl || '';
+  document.getElementById('teamModalLogo').style.visibility = teamItem.logoUrl ? 'visible' : 'hidden';
+  document.getElementById('teamModalLeague').textContent = teamItem.league || teamItem.category || '';
+  document.getElementById('teamModalName').textContent = teamItem.team;
+
+  const body = document.getElementById('teamModalBody');
+  body.innerHTML = `<div class="model-grid">` + teamItem.models.map((m, i) => `
+    <div class="model-card" data-model-idx="${i}">
+      <div class="model-cover">
+        ${m.coverUrl ? `<img src="${m.coverUrl}" alt="${escapeHtml(m.name)}" loading="lazy">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8a978f;font-family:var(--font-mono);font-size:11px;">FOTO EM BREVE</div>`}
+      </div>
+      <div class="model-label">${escapeHtml(m.name)}</div>
+    </div>
+  `).join('') + `</div>`;
+
+  body.querySelectorAll('.model-card').forEach(card => {
+    card.addEventListener('click', () => openGalleryModal(teamItem, teamItem.models[Number(card.dataset.modelIdx)]));
+  });
+
+  document.getElementById('teamOverlay').classList.add('open');
+  document.getElementById('teamModal').classList.add('open');
+}
+function closeTeamModal(){
+  document.getElementById('teamOverlay').classList.remove('open');
+  document.getElementById('teamModal').classList.remove('open');
+}
+document.getElementById('teamOverlay').addEventListener('click', closeTeamModal);
+document.getElementById('teamModalCloseBtn').addEventListener('click', closeTeamModal);
+
+/* ---- Modal: galeria de fotos (frente/costas/lateral/detalhe) ---- */
+let CURRENT_MODEL = null;
+let CURRENT_IMG_IDX = 0;
+
+function openGalleryModal(teamItem, model){
+  CURRENT_MODEL = model;
+  CURRENT_IMG_IDX = 0;
+  document.getElementById('galleryTeamName').textContent = teamItem.team;
+  document.getElementById('galleryModelName').textContent = model.name;
+
+  const thumbs = document.getElementById('galleryThumbs');
+  thumbs.innerHTML = model.images.map((img, i) => `
+    <div class="gallery-thumb ${i === 0 ? 'active' : ''}" data-img-idx="${i}" title="${escapeHtml(img.angleLabel)}">
+      ${img.url ? `<img src="${img.url}" alt="${escapeHtml(img.angleLabel)}">` : ''}
+    </div>
+  `).join('');
+  thumbs.querySelectorAll('.gallery-thumb').forEach(t => {
+    t.addEventListener('click', () => showGalleryImage(Number(t.dataset.imgIdx)));
+  });
+
+  showGalleryImage(0);
+
+  document.getElementById('galleryBuyBtn').onclick = () => {
+    closeGalleryModal();
+    closeTeamModal();
+    openOrderDrawer({ team: teamItem.team, model: model.name });
+  };
+
+  document.getElementById('galleryOverlay').classList.add('open');
+  document.getElementById('galleryModal').classList.add('open');
+}
+function showGalleryImage(i){
+  CURRENT_IMG_IDX = i;
+  const img = CURRENT_MODEL.images[i];
+  if (!img) return;
+  document.getElementById('galleryMainImg').src = img.url || '';
+  document.getElementById('galleryMainImg').alt = img.angleLabel;
+  document.querySelectorAll('.gallery-thumb').forEach((t, idx) => t.classList.toggle('active', idx === i));
+}
+function closeGalleryModal(){
+  document.getElementById('galleryOverlay').classList.remove('open');
+  document.getElementById('galleryModal').classList.remove('open');
+}
+document.getElementById('galleryOverlay').addEventListener('click', closeGalleryModal);
+document.getElementById('galleryCloseBtn').addEventListener('click', closeGalleryModal);
+document.getElementById('galleryBackBtn').addEventListener('click', closeGalleryModal);
 
 /* ============================================================
    ASSISTENTE DE PEDIDO — funil guiado até o WhatsApp
@@ -979,7 +1222,7 @@ function renderStep(){
   nextBtn.textContent = currentStep === TOTAL_STEPS ? "Enviar no WhatsApp" : "Avançar";
 
   if (currentStep === 1){
-    const teams = [...new Set(CATALOG.map(i => i.team))];
+    const teams = TEAMS.map(t => t.team);
     body.innerHTML = `
       <div class="order-step">
         <h4>Qual time?</h4>
@@ -996,7 +1239,8 @@ function renderStep(){
   }
 
   if (currentStep === 2){
-    const models = CATALOG.filter(i => i.team === orderState.team).map(i => i.model);
+    const teamEntry = TEAMS.find(t => t.team === orderState.team);
+    const models = teamEntry ? teamEntry.models.map(m => m.name) : [];
     const list = models.length ? models : ["Modelo Titular","Modelo Alternativo"];
     body.innerHTML = `
       <div class="order-step">
