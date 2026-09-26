@@ -745,6 +745,19 @@ const CONFIG = {
   // Troque o valor abaixo por algo só seu (evite palavras óbvias).
   adminAccessCode: "kardac16",
 
+  // ---- PAGAMENTO AUTOMÁTICO (Mercado Pago) ----
+  // Links de pagamento prontos (sem programação), criados no painel do
+  // Mercado Pago em: Seu negócio > Cobrar > Link de pagamento.
+  // Crie um link para cada preço que você cobra (o valor do link deve ser
+  // IGUAL ao preço abaixo) e cole aqui. A chave precisa ser IDÊNTICA ao
+  // texto usado em "defaultPrice" (ou no preço de um time, se você tiver
+  // preços diferentes por time no futuro).
+  // Se o cliente pedir mais de 1 unidade, o site não tem como somar
+  // automaticamente — nesse caso ele é orientado a combinar direto com você.
+  paymentLinks: {
+    "R$ 149,90": "COLE_AQUI_O_LINK_DO_MERCADO_PAGO"
+  },
+
   // Mensagens do placar/ticker no topo do catálogo
   tickerMessages: [
     "NOVOS MODELOS TODA SEMANA",
@@ -873,15 +886,22 @@ async function loadCatalog(forceRefresh){
 
   try{
     statusEl.textContent = "Carregando fotos do mostruário (percorrendo ligas e times)…";
-    const teams = await walkForTeams(folderId, []);
+    TEAMS = [];
+    let found = 0;
 
-    if (teams.length === 0){
+    await walkForTeams(folderId, [], 0, (team) => {
+      TEAMS.push(team);
+      found++;
+      statusEl.textContent = `${found} time(s) encontrado(s) até agora — ainda buscando…`;
+      renderFilters(TEAMS);
+      renderTeams(applyCurrentFilter(TEAMS));
+    });
+
+    if (TEAMS.length === 0){
       statusEl.textContent = "Nenhuma foto encontrada ainda. Adicione imagens dentro das pastas do Drive.";
-      TEAMS = [];
     } else {
-      statusEl.textContent = `${teams.length} time(s) disponível(is) — atualizado direto do Drive.`;
-      TEAMS = teams;
-      writeCatalogCache(teams);
+      statusEl.textContent = `${TEAMS.length} time(s) disponível(is) — atualizado direto do Drive.`;
+      writeCatalogCache(TEAMS);
     }
   } catch(err){
     console.error("Erro ao carregar Google Drive:", err);
@@ -892,7 +912,12 @@ async function loadCatalog(forceRefresh){
   }
 
   renderFilters(TEAMS);
-  renderTeams(TEAMS);
+  renderTeams(applyCurrentFilter(TEAMS));
+}
+
+let CURRENT_FILTER_GROUP = 'all';
+function applyCurrentFilter(teams){
+  return CURRENT_FILTER_GROUP === 'all' ? teams : teams.filter(t => groupKeyOf(t) === CURRENT_FILTER_GROUP);
 }
 
 const CATALOG_CACHE_KEY = 'manto_catalog_cache_v2';
@@ -915,7 +940,7 @@ function writeCatalogCache(items){
 // Percorre a árvore de pastas procurando "pastas de time": uma pasta que tenha
 // uma subpasta de fotos (ex: "Fotos das Camisas") OU imagens soltas dentro dela.
 // nameChain guarda os nomes das pastas percorridas até aqui (inclui a pasta atual).
-async function walkForTeams(folderId, nameChain, depth = 0){
+async function walkForTeams(folderId, nameChain, depth = 0, onTeamFound){
   const [images, subfolders] = await Promise.all([
     driveListImages(folderId),
     driveListFolders(folderId)
@@ -945,24 +970,23 @@ async function walkForTeams(folderId, nameChain, depth = 0){
       if (nonLogoImages.length > 0) models.push(buildModel("Modelo único", nonLogoImages));
     }
 
-    if (models.length === 0) return []; // pasta só com logo (ou vazia) — ainda sem fotos de venda
+    if (models.length === 0) return; // pasta só com logo (ou vazia) — ainda sem fotos de venda
 
     const category = nameChain.length >= 3 ? nameChain[nameChain.length - 3] : undefined;
     const league   = nameChain.length >= 2 ? nameChain[nameChain.length - 2] : undefined;
     const team     = nameChain.length >= 1 ? nameChain[nameChain.length - 1] : CONFIG.storeName;
 
-    return [{ category, league, team, logoUrl, models }];
+    if (onTeamFound) onTeamFound({ category, league, team, logoUrl, models });
+    return;
   }
 
-  // Ainda não chegamos numa pasta de time — continua descendo (categoria/liga)
-  let results = [];
+  // Ainda não chegamos numa pasta de time — continua descendo (categoria/liga),
+  // em paralelo para não esperar uma liga inteira terminar antes de mostrar a próxima.
   if (depth < MAX_DRIVE_DEPTH){
-    for (const sub of subfolders){
-      const found = await walkForTeams(sub.id, [...nameChain, sub.name], depth + 1);
-      results = results.concat(found);
-    }
+    await Promise.all(subfolders.map(sub =>
+      walkForTeams(sub.id, [...nameChain, sub.name], depth + 1, onTeamFound)
+    ));
   }
-  return results;
 }
 
 function buildModel(name, images){
@@ -1055,15 +1079,15 @@ function groupKeyOf(item){
 function renderFilters(items){
   const groups = [...new Set(items.map(groupKeyOf))].filter(Boolean).sort();
   const wrap = document.getElementById('filterChips');
-  wrap.innerHTML = `<button class="chip active" data-group="all">Todos</button>` +
-    groups.map(g => `<button class="chip" data-group="${escapeHtml(g)}">${escapeHtml(g)}</button>`).join('');
+  wrap.innerHTML = `<button class="chip ${CURRENT_FILTER_GROUP==='all'?'active':''}" data-group="all">Todos</button>` +
+    groups.map(g => `<button class="chip ${CURRENT_FILTER_GROUP===g?'active':''}" data-group="${escapeHtml(g)}">${escapeHtml(g)}</button>`).join('');
 
   wrap.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
       wrap.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
-      const group = chip.dataset.group;
-      renderTeams(group === 'all' ? TEAMS : TEAMS.filter(i => groupKeyOf(i) === group));
+      CURRENT_FILTER_GROUP = chip.dataset.group;
+      renderTeams(applyCurrentFilter(TEAMS));
     });
   });
 }
@@ -1304,16 +1328,20 @@ function renderStep(){
           <label for="paymentInput">Forma de pagamento preferida</label>
           <select id="paymentInput">
             <option value="">Selecione…</option>
-            <option value="Pix" ${orderState.payment==='Pix'?'selected':''}>Pix</option>
-            <option value="Cartão" ${orderState.payment==='Cartão'?'selected':''}>Cartão</option>
+            <option value="Mercado Pago" ${orderState.payment==='Mercado Pago'?'selected':''}>Mercado Pago (Pix ou Cartão)</option>
             <option value="A combinar" ${orderState.payment==='A combinar'?'selected':''}>A combinar no WhatsApp</option>
           </select>
         </div>
+        <div id="mpPayBox"></div>
       </div>`;
     document.getElementById('cepInput').addEventListener('input', e => orderState.cep = e.target.value);
     document.getElementById('cityInput').addEventListener('input', e => orderState.city = e.target.value);
     document.getElementById('addrInput').addEventListener('input', e => orderState.address = e.target.value);
-    document.getElementById('paymentInput').addEventListener('change', e => orderState.payment = e.target.value);
+    document.getElementById('paymentInput').addEventListener('change', e => {
+      orderState.payment = e.target.value;
+      renderMercadoPagoBox();
+    });
+    renderMercadoPagoBox();
   }
 
   if (currentStep === 6){
@@ -1330,9 +1358,37 @@ function renderStep(){
           <div><span>Telefone</span><b>${escapeHtml(orderState.phone||"—")}</b></div>
           <div><span>Cidade/UF</span><b>${escapeHtml(orderState.city||"—")}</b></div>
           <div><span>Pagamento</span><b>${escapeHtml(orderState.payment||"—")}</b></div>
+          ${orderState.payment==='Mercado Pago' ? `<div><span>Status</span><b>${orderState.mpPaid ? "Pago pelo link ✓" : "Ainda não pago"}</b></div>` : ``}
         </div>
+        ${orderState.payment==='Mercado Pago' && !orderState.mpPaid ? `<p class="hint" style="color:#B45309;">⚠️ Não esqueça de concluir o pagamento pelo link do Mercado Pago antes de enviar — o vendedor vai conferir.</p>` : ``}
       </div>`;
   }
+}
+
+// Mostra o botão real de pagamento do Mercado Pago quando existe um link
+// cadastrado para o preço exato (só funciona com quantidade = 1).
+function renderMercadoPagoBox(){
+  const box = document.getElementById('mpPayBox');
+  if (!box) return;
+  if (orderState.payment !== 'Mercado Pago'){ box.innerHTML = ''; return; }
+
+  const link = CONFIG.paymentLinks && CONFIG.paymentLinks[CONFIG.defaultPrice];
+  const linkReady = link && link !== 'COLE_AQUI_O_LINK_DO_MERCADO_PAGO';
+  const qty = Number(orderState.qty) || 1;
+
+  if (!linkReady){
+    box.innerHTML = `<p class="hint">O link de pagamento ainda não foi configurado pela loja — escolha "A combinar no WhatsApp" por enquanto.</p>`;
+    return;
+  }
+  if (qty > 1){
+    box.innerHTML = `<p class="hint">Para mais de 1 unidade, o link automático não soma o valor — combine o pagamento direto no WhatsApp após enviar o pedido.</p>`;
+    return;
+  }
+  box.innerHTML = `
+    <a href="${link}" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:6px;" id="mpPayLink">
+      Pagar ${escapeHtml(CONFIG.defaultPrice)} com Mercado Pago
+    </a>`;
+  document.getElementById('mpPayLink').addEventListener('click', () => { orderState.mpPaid = true; });
 }
 
 document.getElementById('orderBackBtn').addEventListener('click', () => {
@@ -1348,6 +1404,10 @@ document.getElementById('orderNextBtn').addEventListener('click', () => {
 });
 
 function sendOrderToWhatsapp(){
+  const paymentLine = orderState.payment === 'Mercado Pago'
+    ? `Pagamento: Mercado Pago ${orderState.mpPaid ? "(cliente marcou como pago pelo link)" : "(ainda NÃO pago — confirmar)"}`
+    : `Pagamento: ${orderState.payment || "-"}`;
+
   const msg = [
     `Olá! Quero fazer um pedido:`,
     ``,
@@ -1362,7 +1422,7 @@ function sendOrderToWhatsapp(){
     `Endereço: ${orderState.address || "-"}`,
     `CEP: ${orderState.cep || "-"}`,
     `Cidade/UF: ${orderState.city || "-"}`,
-    `Pagamento: ${orderState.payment || "-"}`
+    paymentLine
   ].join("\n");
 
   window.open(whatsappLink(msg), "_blank", "noopener");
