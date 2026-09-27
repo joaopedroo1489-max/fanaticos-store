@@ -413,6 +413,97 @@
   .wsp-float:hover{transform:scale(1.08);}
   .wsp-float svg{width:30px; height:30px;}
 
+  /* ---- Busca no header ---- */
+  .nav-search{
+    display:flex; align-items:center; gap:8px; background:rgba(245,247,244,0.08);
+    border:1px solid var(--line); border-radius:999px; padding:9px 16px; flex:1;
+    max-width:360px; color:var(--chalk); margin:0 20px;
+  }
+  .nav-search input{
+    background:none; border:none; outline:none; color:var(--floodlight);
+    font-size:13.5px; width:100%; font-family:inherit;
+  }
+  .nav-search input::placeholder{color:var(--chalk);}
+  @media (max-width:1080px){ .nav-search{display:none;} }
+
+  /* ---- Ícones de favoritos/carrinho ---- */
+  .nav-icons{display:flex; align-items:center; gap:6px;}
+  .icon-btn{
+    position:relative; color:var(--floodlight-2); width:38px; height:38px;
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    transition:background .18s;
+  }
+  .icon-btn:hover{background:rgba(245,247,244,0.08);}
+  .icon-badge{
+    position:absolute; top:-2px; right:-2px; background:var(--gold); color:var(--charcoal);
+    font-family:var(--font-mono); font-size:10px; font-weight:700; min-width:16px; height:16px;
+    border-radius:999px; display:flex; align-items:center; justify-content:center; padding:0 3px;
+  }
+  @media (max-width:860px){ .nav-cta{display:none;} }
+
+  /* ---- Campeonatos (categorias) ---- */
+  .leagues{background:#fff; padding-top:56px;}
+  .league-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:16px;}
+  @media (max-width:1080px){ .league-grid{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:600px){ .league-grid{grid-template-columns:repeat(2,1fr);} }
+  .league-card{
+    background:linear-gradient(155deg, var(--pitch-dark), var(--pitch-darker));
+    border-radius:var(--radius); padding:22px 14px; text-align:center; color:var(--floodlight);
+    border:1px solid var(--line); transition:transform .2s, box-shadow .2s; cursor:pointer;
+  }
+  .league-card:hover{transform:translateY(-4px); box-shadow:var(--shadow-lg);}
+  .league-card .emblem{font-size:26px; margin-bottom:8px;}
+  .league-card .name{font-family:var(--font-display); font-size:14px; letter-spacing:.02em; line-height:1.15;}
+  .league-card .count{font-family:var(--font-mono); font-size:10.5px; color:var(--gold-soft); margin-top:6px;}
+
+  /* ---- Ofertas ---- */
+  .offer-band{
+    background:linear-gradient(120deg, var(--gold), var(--gold-soft));
+    color:var(--charcoal); border-radius:20px; margin:0 24px; padding:36px 32px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;
+    max-width:1152px; margin-inline:auto;
+  }
+  .offer-band h2{font-family:var(--font-display); font-size:clamp(24px,3.5vw,34px); margin-top:6px;}
+  .offer-band .btn-primary{background:var(--charcoal); color:var(--floodlight);}
+
+  /* ---- Newsletter (WhatsApp opt-in) ---- */
+  .newsletter{background:#fff; padding-bottom:88px;}
+
+  /* ---- Footer expandido ---- */
+  .footer-inner-expanded{flex-wrap:wrap; gap:36px;}
+  .footer-col{display:flex; flex-direction:column; gap:10px; min-width:140px;}
+  .footer-col h4{font-family:var(--font-display); font-size:13px; color:var(--floodlight); letter-spacing:.04em; margin-bottom:2px;}
+  .footer-col a{font-size:13.5px; color:var(--chalk);}
+  .footer-col a:hover{color:var(--floodlight);}
+  .footer-social{display:flex; gap:10px; margin-top:14px;}
+  .footer-social a{
+    width:32px; height:32px; border-radius:50%; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+  }
+
+  /* ---- Modal institucional ---- */
+  .legal-modal{
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(.96);
+    width:min(560px, 92vw); max-height:80vh; background:var(--floodlight); border-radius:var(--radius);
+    z-index:95; box-shadow:var(--shadow-lg); display:flex; flex-direction:column;
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+  }
+  .legal-modal.open{opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1);}
+  .legal-modal .order-body{overflow-y:auto; font-size:14px; line-height:1.6; color:#3a423d;}
+
+  /* ---- Galeria: seletor de tamanho + botão secundário ---- */
+  .gallery-size-row{display:flex; gap:8px; padding:0 20px 14px; flex-wrap:wrap;}
+  .gallery-size-row .opt-chip{padding:8px 14px; font-size:13px;}
+
+  /* ---- Favoritar (coração no card) ---- */
+  .fav-heart{
+    position:absolute; top:12px; right:12px; z-index:2; width:32px; height:32px; border-radius:50%;
+    background:rgba(6,21,16,0.55); display:flex; align-items:center; justify-content:center;
+    color:#fff; transition:background .18s, transform .15s;
+  }
+  .fav-heart:hover{transform:scale(1.1);}
+  .fav-heart.active{background:var(--gold); color:var(--charcoal);}
+
   .admin-refresh{
     position:fixed; bottom:24px; left:24px; z-index:70;
     display:flex; align-items:center; gap:8px;
@@ -511,12 +602,26 @@
         <div class="brand-tag">CAMISAS OFICIAIS</div>
       </div>
     </div>
+    <div class="nav-search">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="navSearchInput" placeholder="Busque por time, camisa ou produto...">
+    </div>
     <nav class="nav-links">
+      <a href="#campeonatos">Times</a>
       <a href="#catalogo">Catálogo</a>
       <a href="#como-funciona">Como funciona</a>
-      <a href="#confianca">Por que comprar</a>
-      <a class="nav-cta" href="#" id="navWspBtn">Pedir no WhatsApp</a>
     </nav>
+    <div class="nav-icons">
+      <button class="icon-btn" id="favToggleBtn" aria-label="Favoritos">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+        <span class="icon-badge" id="favBadge" style="display:none;">0</span>
+      </button>
+      <button class="icon-btn" id="cartToggleBtn" aria-label="Carrinho">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+        <span class="icon-badge" id="cartBadge" style="display:none;">0</span>
+      </button>
+      <a class="nav-cta" href="#" id="navWspBtn">Pedir no WhatsApp</a>
+    </div>
   </div>
 </header>
 
@@ -551,6 +656,50 @@
   <div class="scoreboard-track" id="tickerTrack"></div>
 </div>
 
+<!-- ================= CAMPEONATOS ================= -->
+<section class="leagues" id="campeonatos">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Escolha seu campeonato</span>
+      <h2>Navegue por liga</h2>
+      <p>As categorias abaixo aparecem automaticamente conforme os times vão sendo cadastrados no mostruário.</p>
+    </div>
+    <div class="league-grid" id="leagueGrid">
+      <div class="catalog-status">Carregando campeonatos…</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= OFERTAS (aparece só quando configurada) ================= -->
+<section id="ofertas" style="display:none; padding-top:0;">
+  <div class="offer-band">
+    <div>
+      <span class="eyebrow light" id="offerEyebrow">OFERTA</span>
+      <h2 id="offerTitle">Ofertas da semana</h2>
+      <p id="offerSubtitle"></p>
+    </div>
+    <a href="#catalogo" class="btn btn-primary" id="offerCtaBtn">Ver ofertas</a>
+  </div>
+</section>
+
+<!-- ================= CATÁLOGO ================= -->
+<section class="catalog" id="catalogo">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Mais procurados</span>
+      <h2>Camisas disponíveis</h2>
+      <p>Fotos carregadas automaticamente da pasta de amostras no Google Drive.</p>
+    </div>
+    <div class="catalog-top">
+      <div class="filters" id="filterChips">
+        <button class="chip active" data-team="all">Todos</button>
+      </div>
+    </div>
+    <div class="catalog-status" id="catalogStatus">Carregando catálogo…</div>
+    <div class="grid-products" id="productGrid"></div>
+  </div>
+</section>
+
 <!-- ================= COMO FUNCIONA ================= -->
 <section class="how" id="como-funciona">
   <div class="wrap">
@@ -579,37 +728,29 @@
   </div>
 </section>
 
-<!-- ================= CATÁLOGO ================= -->
-<section class="catalog" id="catalogo">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Catálogo</span>
-      <h2>Camisas disponíveis</h2>
-      <p>Fotos carregadas automaticamente da pasta de amostras no Google Drive.</p>
-    </div>
-    <div class="catalog-top">
-      <div class="filters" id="filterChips">
-        <button class="chip active" data-team="all">Todos</button>
-      </div>
-    </div>
-    <div class="catalog-status" id="catalogStatus">Carregando catálogo…</div>
-    <div class="grid-products" id="productGrid"></div>
-  </div>
-</section>
-
-<!-- ================= CONFIANÇA ================= -->
+<!-- ================= BENEFÍCIOS ================= -->
 <section class="trust" id="confianca">
   <div class="wrap">
     <div class="section-head" style="max-width:100%">
       <span class="eyebrow light">Por que comprar aqui</span>
-      <h2 style="color:var(--floodlight)">Time completo, do catálogo ao pós-venda</h2>
+      <h2 style="color:var(--floodlight)">Comprar com tranquilidade, do pedido à entrega</h2>
     </div>
     <div class="trust-grid">
-      <div class="trust-item"><div class="big">100%</div><div class="lbl">Fotos reais do mostruário</div></div>
-      <div class="trust-item"><div class="big">P–GG</div><div class="lbl">Tamanhos disponíveis</div></div>
-      <div class="trust-item"><div class="big">24h</div><div class="lbl">Resposta no WhatsApp</div></div>
-      <div class="trust-item"><div class="big">BR</div><div class="lbl">Envio para todo o país</div></div>
+      <div class="trust-item"><div class="big">🚚</div><div class="lbl">Envio para todo o Brasil<br><span style="opacity:.7; font-family:var(--font-body); font-weight:400;">Receba seu pedido onde estiver</span></div></div>
+      <div class="trust-item"><div class="big">🔒</div><div class="lbl">Compra segura<br><span style="opacity:.7; font-family:var(--font-body); font-weight:400;">Seus dados protegidos</span></div></div>
+      <div class="trust-item"><div class="big">💳</div><div class="lbl">Pagamento facilitado<br><span style="opacity:.7; font-family:var(--font-body); font-weight:400;">Pix, cartão e outras opções</span></div></div>
+      <div class="trust-item"><div class="big">↩️</div><div class="lbl">Troca fácil<br><span style="opacity:.7; font-family:var(--font-body); font-weight:400;">Compre com tranquilidade</span></div></div>
     </div>
+  </div>
+</section>
+
+<!-- ================= WHATSAPP OPT-IN (substitui newsletter por e-mail) ================= -->
+<section class="newsletter">
+  <div class="wrap" style="text-align:center;">
+    <span class="eyebrow">Fique por dentro</span>
+    <h2>Receba nossas ofertas em primeira mão</h2>
+    <p style="max-width:480px; margin:10px auto 24px; color:#57625B;">Sem spam no e-mail: mande uma mensagem e a gente te avisa direto no WhatsApp quando chegar novidade ou promoção.</p>
+    <a href="#" class="btn btn-wsp" id="newsletterWspBtn" style="display:inline-flex;">Quero receber no WhatsApp</a>
   </div>
 </section>
 
@@ -624,15 +765,30 @@
 
 <!-- ================= FOOTER ================= -->
 <footer>
-  <div class="footer-inner">
-    <div>
+  <div class="footer-inner footer-inner-expanded">
+    <div class="footer-col footer-brand-col">
       <div class="brand-name" data-cfg="storeName" style="font-family:var(--font-display); color:var(--floodlight);">MANTO</div>
-      <p style="font-size:13px; margin-top:8px; max-width:280px;">Camisas de time selecionadas, com atendimento direto e envio para todo o Brasil.</p>
+      <p style="font-size:13px; margin-top:8px; max-width:240px;">Camisas de time selecionadas, com atendimento direto e envio para todo o Brasil.</p>
+      <div class="footer-social" id="footerSocial"></div>
     </div>
-    <div class="footer-links">
-      <a href="#catalogo">Catálogo</a>
-      <a href="#como-funciona">Como funciona</a>
+    <div class="footer-col">
+      <h4>Institucional</h4>
+      <a href="#" data-legal="sobre">Sobre nós</a>
+      <a href="#" data-legal="privacidade">Política de privacidade</a>
+      <a href="#" data-legal="termos">Termos de uso</a>
+      <a href="#" data-legal="trocas">Trocas e devoluções</a>
+    </div>
+    <div class="footer-col">
+      <h4>Atendimento</h4>
+      <a href="#" id="footerWspBtn2">Fale conosco</a>
       <a href="#" id="footerWspBtn">WhatsApp</a>
+      <a href="#" data-legal="faq">Perguntas frequentes</a>
+    </div>
+    <div class="footer-col">
+      <h4>Categorias</h4>
+      <a href="#catalogo">Camisas</a>
+      <a href="#campeonatos">Times</a>
+      <a href="#ofertas">Ofertas</a>
     </div>
   </div>
   <div class="footer-bottom">
@@ -640,6 +796,16 @@
     <span>Feito para torcedores.</span>
   </div>
 </footer>
+
+<!-- ================= MODAL: TEXTOS INSTITUCIONAIS ================= -->
+<div class="order-overlay" id="legalOverlay"></div>
+<div class="legal-modal" id="legalModal" role="dialog" aria-label="Informações">
+  <div class="order-head">
+    <h3 id="legalModalTitle">Informações</h3>
+    <button class="order-close" id="legalCloseBtn" aria-label="Fechar">&times;</button>
+  </div>
+  <div class="order-body" id="legalModalBody"></div>
+</div>
 
 <!-- ================= BOTÃO FLUTUANTE WHATSAPP ================= -->
 <a href="#" class="wsp-float" id="floatWspBtn" aria-label="Falar no WhatsApp">
@@ -676,13 +842,38 @@
     <img id="galleryMainImg" alt="" />
   </div>
   <div class="gallery-thumbs" id="galleryThumbs"></div>
+  <div class="gallery-size-row" id="gallerySizeRow"></div>
   <div class="gallery-foot">
     <div>
       <div class="gallery-team" id="galleryTeamName"></div>
       <div class="gallery-model" id="galleryModelName"></div>
     </div>
-    <button class="btn btn-primary" id="galleryBuyBtn">Comprar este modelo</button>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary" id="galleryAddCartBtn">+ Carrinho</button>
+      <button class="btn btn-primary" id="galleryBuyBtn">Comprar este modelo</button>
+    </div>
   </div>
+</div>
+
+<!-- ================= CARRINHO ================= -->
+<div class="order-overlay" id="cartOverlay"></div>
+<div class="order-drawer" id="cartDrawer" role="dialog" aria-label="Carrinho">
+  <div class="order-head">
+    <h3>Carrinho</h3>
+    <button class="order-close" id="cartCloseBtn" aria-label="Fechar">&times;</button>
+  </div>
+  <div class="order-body" id="cartBody"></div>
+  <div class="order-foot" id="cartFoot" style="flex-direction:column; gap:10px;"></div>
+</div>
+
+<!-- ================= FAVORITOS ================= -->
+<div class="order-overlay" id="favOverlay"></div>
+<div class="order-drawer" id="favDrawer" role="dialog" aria-label="Favoritos">
+  <div class="order-head">
+    <h3>Favoritos</h3>
+    <button class="order-close" id="favCloseBtn" aria-label="Fechar">&times;</button>
+  </div>
+  <div class="order-body" id="favBody"></div>
 </div>
 
 <!-- ================= ASSISTENTE DE PEDIDO ================= -->
@@ -758,7 +949,37 @@ const CONFIG = {
     "TAMANHOS P AO GG DISPONÍVEIS",
     "ATENDIMENTO DIRETO NO WHATSAPP",
     "PEDIDOS RESPONDIDOS EM ATÉ 24H"
-  ]
+  ],
+
+  // ---- OFERTA (opcional) ----
+  // A faixa de ofertas só aparece no site quando "enabled" for true.
+  // Deixe desligado até você ter uma promoção real pra anunciar —
+  // evita prometer desconto que não existe.
+  offer: {
+    enabled: false,
+    eyebrow: "OFERTA",
+    title: "Ofertas da semana",
+    subtitle: "Descreva aqui a promoção real (ex: 15% OFF em modelos selecionados)",
+    ctaText: "Ver ofertas"
+  },
+
+  // ---- REDES SOCIAIS (opcional) ----
+  // Deixe em branco a rede que você ainda não usa — o ícone some sozinho.
+  social: {
+    instagram: "",
+    tiktok: "",
+    facebook: ""
+  },
+
+  // ---- TEXTOS INSTITUCIONAIS ----
+  // Edite com o conteúdo real da sua loja antes de publicar de verdade.
+  legalTexts: {
+    sobre: "Conte aqui a história da loja, desde quando vende, e o que torna o atendimento diferente.",
+    privacidade: "Descreva aqui como os dados dos clientes (nome, telefone, endereço) são usados e guardados.",
+    termos: "Descreva aqui as regras de uso do site, prazos de entrega e condições de compra.",
+    trocas: "Explique aqui o prazo e as condições para troca ou devolução de um produto.",
+    faq: "Liste aqui as perguntas mais comuns: prazo de entrega, formas de pagamento, tamanhos disponíveis, etc."
+  }
 };
 
 /* ============================================================
@@ -786,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('year').textContent = new Date().getFullYear();
 
   const defaultWspUrl = whatsappLink(CONFIG.whatsappDefaultMessage);
-  ['heroWspBtn','navWspBtn','footerWspBtn','floatWspBtn'].forEach(id => {
+  ['heroWspBtn','navWspBtn','footerWspBtn','footerWspBtn2','floatWspBtn','newsletterWspBtn'].forEach(id => {
     const el = document.getElementById(id);
     if (el){ el.href = defaultWspUrl; el.target = "_blank"; el.rel = "noopener"; }
   });
@@ -794,8 +1015,251 @@ document.addEventListener('DOMContentLoaded', () => {
 
   buildTicker();
   setupAdminAccess();
+  setupOfferBand();
+  setupFooterSocial();
+  setupLegalModal();
+  setupSearch();
+  setupFavorites();
+  setupCart();
   loadCatalog();
 });
+
+/* ============================================================
+   OFERTAS — a faixa só aparece quando CONFIG.offer.enabled = true
+   ============================================================ */
+function setupOfferBand(){
+  if (!CONFIG.offer || !CONFIG.offer.enabled) return;
+  document.getElementById('offerEyebrow').textContent = CONFIG.offer.eyebrow || 'OFERTA';
+  document.getElementById('offerTitle').textContent = CONFIG.offer.title || 'Ofertas da semana';
+  document.getElementById('offerSubtitle').textContent = CONFIG.offer.subtitle || '';
+  document.getElementById('offerCtaBtn').textContent = CONFIG.offer.ctaText || 'Ver ofertas';
+  document.getElementById('ofertas').style.display = 'block';
+}
+
+/* ============================================================
+   REDES SOCIAIS — ícones só aparecem para links preenchidos
+   ============================================================ */
+function setupFooterSocial(){
+  const wrap = document.getElementById('footerSocial');
+  const nets = [
+    { key:'instagram', label:'IG' },
+    { key:'tiktok', label:'TT' },
+    { key:'facebook', label:'FB' }
+  ];
+  wrap.innerHTML = nets
+    .filter(n => CONFIG.social && CONFIG.social[n.key])
+    .map(n => `<a href="${CONFIG.social[n.key]}" target="_blank" rel="noopener">${n.label}</a>`)
+    .join('');
+}
+
+/* ============================================================
+   MODAL INSTITUCIONAL — Sobre/Privacidade/Termos/Trocas/FAQ
+   ============================================================ */
+function setupLegalModal(){
+  const titles = {
+    sobre: 'Sobre nós', privacidade: 'Política de privacidade',
+    termos: 'Termos de uso', trocas: 'Trocas e devoluções', faq: 'Perguntas frequentes'
+  };
+  document.querySelectorAll('[data-legal]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const key = link.dataset.legal;
+      document.getElementById('legalModalTitle').textContent = titles[key] || 'Informações';
+      document.getElementById('legalModalBody').innerHTML = `<p>${escapeHtml((CONFIG.legalTexts && CONFIG.legalTexts[key]) || 'Conteúdo ainda não configurado.')}</p>`;
+      document.getElementById('legalOverlay').classList.add('open');
+      document.getElementById('legalModal').classList.add('open');
+    });
+  });
+  const close = () => {
+    document.getElementById('legalOverlay').classList.remove('open');
+    document.getElementById('legalModal').classList.remove('open');
+  };
+  document.getElementById('legalCloseBtn').addEventListener('click', close);
+  document.getElementById('legalOverlay').addEventListener('click', close);
+}
+
+/* ============================================================
+   BUSCA — filtra os times pelo nome digitado, combinando com
+   o filtro de liga ativo no momento
+   ============================================================ */
+let SEARCH_TERM = '';
+function setupSearch(){
+  document.getElementById('navSearchInput').addEventListener('input', (e) => {
+    SEARCH_TERM = e.target.value.trim().toLowerCase();
+    renderTeams(applyCurrentFilter(TEAMS));
+  });
+}
+
+/* ============================================================
+   FAVORITOS — localStorage, coração nos cards, drawer próprio
+   ============================================================ */
+const FAV_KEY = 'manto_favorites_v1';
+function getFavorites(){
+  try{ return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch(e){ return []; }
+}
+function saveFavorites(list){
+  try{ localStorage.setItem(FAV_KEY, JSON.stringify(list)); } catch(e){}
+}
+function favKeyOf(team, model){ return `${team}||${model}`; }
+function isFavorite(team, model){
+  return getFavorites().includes(favKeyOf(team, model));
+}
+function toggleFavorite(team, model, imageUrl){
+  const key = favKeyOf(team, model);
+  let list = getFavorites();
+  const stored = JSON.parse(localStorage.getItem(FAV_KEY + '_data') || '{}');
+  if (list.includes(key)){
+    list = list.filter(k => k !== key);
+    delete stored[key];
+  } else {
+    list.push(key);
+    stored[key] = { team, model, imageUrl };
+  }
+  saveFavorites(list);
+  localStorage.setItem(FAV_KEY + '_data', JSON.stringify(stored));
+  updateFavBadge();
+  return list.includes(key);
+}
+function updateFavBadge(){
+  const n = getFavorites().length;
+  const badge = document.getElementById('favBadge');
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'flex' : 'none';
+}
+function setupFavorites(){
+  updateFavBadge();
+  document.getElementById('favToggleBtn').addEventListener('click', openFavDrawer);
+  document.getElementById('favCloseBtn').addEventListener('click', closeFavDrawer);
+  document.getElementById('favOverlay').addEventListener('click', closeFavDrawer);
+}
+function openFavDrawer(){
+  const stored = JSON.parse(localStorage.getItem(FAV_KEY + '_data') || '{}');
+  const items = Object.values(stored);
+  const body = document.getElementById('favBody');
+  body.innerHTML = items.length
+    ? items.map(it => `
+        <div class="summary-box" style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+          ${it.imageUrl ? `<img src="${it.imageUrl}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;">` : ''}
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">${escapeHtml(it.team)}</div>
+            <div style="font-size:12.5px; color:#57625B;">${escapeHtml(it.model)}</div>
+          </div>
+          <button class="btn btn-secondary" data-fav-remove="${escapeHtml(favKeyOf(it.team, it.model))}" style="padding:8px 12px; font-size:12px;">Remover</button>
+        </div>`).join('')
+    : `<p class="hint">Nenhum favorito ainda — toque no coração de um modelo para guardá-lo aqui.</p>`;
+
+  body.querySelectorAll('[data-fav-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [team, model] = btn.dataset.favRemove.split('||');
+      toggleFavorite(team, model);
+      openFavDrawer(); // recarrega a lista
+      renderTeams(applyCurrentFilter(TEAMS)); // atualiza corações nos cards
+    });
+  });
+
+  document.getElementById('favOverlay').classList.add('open');
+  document.getElementById('favDrawer').classList.add('open');
+}
+function closeFavDrawer(){
+  document.getElementById('favOverlay').classList.remove('open');
+  document.getElementById('favDrawer').classList.remove('open');
+}
+
+/* ============================================================
+   CARRINHO — localStorage, múltiplos itens, checkout no
+   WhatsApp ou no Mercado Pago (Apps Script) com tudo somado
+   ============================================================ */
+const CART_KEY = 'manto_cart_v1';
+function getCart(){
+  try{ return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch(e){ return []; }
+}
+function saveCart(items){
+  try{ localStorage.setItem(CART_KEY, JSON.stringify(items)); } catch(e){}
+  updateCartBadge();
+}
+function addToCart(item){
+  const cart = getCart();
+  const existing = cart.find(i => i.team===item.team && i.model===item.model && i.size===item.size);
+  if (existing) existing.qty += item.qty;
+  else cart.push(item);
+  saveCart(cart);
+}
+function updateCartBadge(){
+  const n = getCart().reduce((sum,i) => sum + Number(i.qty||1), 0);
+  const badge = document.getElementById('cartBadge');
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'flex' : 'none';
+}
+function setupCart(){
+  updateCartBadge();
+  document.getElementById('cartToggleBtn').addEventListener('click', openCartDrawer);
+  document.getElementById('cartCloseBtn').addEventListener('click', closeCartDrawer);
+  document.getElementById('cartOverlay').addEventListener('click', closeCartDrawer);
+}
+function cartUnitPrice(){ return parsePriceToNumber(CONFIG.defaultPrice); }
+
+function openCartDrawer(){
+  renderCartBody();
+  document.getElementById('cartOverlay').classList.add('open');
+  document.getElementById('cartDrawer').classList.add('open');
+}
+function closeCartDrawer(){
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.getElementById('cartDrawer').classList.remove('open');
+}
+function renderCartBody(){
+  const cart = getCart();
+  const body = document.getElementById('cartBody');
+  const foot = document.getElementById('cartFoot');
+  const unit = cartUnitPrice();
+  const total = cart.reduce((sum,i) => sum + unit * Number(i.qty||1), 0);
+
+  if (cart.length === 0){
+    body.innerHTML = `<p class="hint">Seu carrinho está vazio — adicione um modelo pela galeria de fotos.</p>`;
+    foot.innerHTML = '';
+    return;
+  }
+
+  body.innerHTML = cart.map((item, idx) => `
+    <div class="summary-box" style="margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:700; font-size:13.5px;">${escapeHtml(item.team)}</div>
+          <div style="font-size:12.5px; color:#57625B;">${escapeHtml(item.model)} · Tam. ${escapeHtml(item.size||'-')}</div>
+        </div>
+        <button data-remove="${idx}" style="color:#B45309; font-size:12px;">Remover</button>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+        <div class="opt-grid" style="margin:0;">
+          <button class="opt-chip" data-qtychange="${idx}" data-delta="-1" style="padding:4px 10px;">–</button>
+          <span style="padding:4px 10px; font-family:var(--font-mono);">${item.qty}</span>
+          <button class="opt-chip" data-qtychange="${idx}" data-delta="1" style="padding:4px 10px;">+</button>
+        </div>
+        <b class="card-price">${(unit * item.qty).toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</b>
+      </div>
+    </div>
+  `).join('');
+
+  foot.innerHTML = `
+    <div style="display:flex; justify-content:space-between; width:100%; font-weight:700; padding:0 4px;">
+      <span>Total</span><span class="card-price">${total.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</span>
+    </div>
+    <button class="btn btn-primary" id="cartCheckoutBtn" style="width:100%; justify-content:center;">Finalizar pedido</button>
+  `;
+
+  body.querySelectorAll('[data-remove]').forEach(btn => btn.addEventListener('click', () => {
+    const cart2 = getCart(); cart2.splice(Number(btn.dataset.remove), 1); saveCart(cart2); renderCartBody();
+  }));
+  body.querySelectorAll('[data-qtychange]').forEach(btn => btn.addEventListener('click', () => {
+    const cart2 = getCart(); const i = Number(btn.dataset.qtychange); const delta = Number(btn.dataset.delta);
+    cart2[i].qty = Math.max(1, Number(cart2[i].qty||1) + delta);
+    saveCart(cart2); renderCartBody();
+  }));
+  document.getElementById('cartCheckoutBtn').addEventListener('click', () => {
+    closeCartDrawer();
+    openOrderDrawer(null, true); // modo carrinho: pula direto pros dados do cliente
+  });
+}
 
 /* ============================================================
    ACESSO ADMIN — botão de atualizar catálogo, oculto por padrão.
@@ -1087,11 +1551,14 @@ function renderFilters(items){
 
 function renderTeams(items){
   const grid = document.getElementById('productGrid');
-  if (!items || items.length === 0){
-    grid.innerHTML = `<div class="empty-state">Nenhum time encontrado nesta liga ainda.</div>`;
+  const filtered = SEARCH_TERM
+    ? items.filter(t => t.team.toLowerCase().includes(SEARCH_TERM) || (t.league||'').toLowerCase().includes(SEARCH_TERM))
+    : items;
+  if (!filtered || filtered.length === 0){
+    grid.innerHTML = `<div class="empty-state">${SEARCH_TERM ? 'Nenhum resultado para essa busca.' : 'Nenhum time encontrado nesta liga ainda.'}</div>`;
     return;
   }
-  grid.innerHTML = items.map((teamItem, idx) => {
+  grid.innerHTML = filtered.map((teamItem, idx) => {
     const cover = teamItem.logoUrl || (teamItem.models[0] && teamItem.models[0].coverUrl) || '';
     const isLogo = !!teamItem.logoUrl;
     const modelCount = teamItem.models.length;
@@ -1115,7 +1582,7 @@ function renderTeams(items){
   }).join('');
 
   grid.querySelectorAll('.team-card').forEach(card => {
-    card.addEventListener('click', () => openTeamModal(items[Number(card.dataset.teamIdx)]));
+    card.addEventListener('click', () => openTeamModal(filtered[Number(card.dataset.teamIdx)]));
   });
 }
 
@@ -1137,13 +1604,23 @@ function openTeamModal(teamItem){
 
   const body = document.getElementById('teamModalBody');
   body.innerHTML = `<div class="model-grid">` + teamItem.models.map((m, i) => `
-    <div class="model-card" data-model-idx="${i}">
+    <div class="model-card" data-model-idx="${i}" style="position:relative;">
+      <button class="fav-heart ${isFavorite(teamItem.team, m.name) ? 'active' : ''}" data-fav-team="${escapeHtml(teamItem.team)}" data-fav-model="${escapeHtml(m.name)}" data-fav-img="${escapeHtml(m.coverUrl||'')}" aria-label="Favoritar">♥</button>
       <div class="model-cover">
         ${m.coverUrl ? `<img src="${m.coverUrl}" alt="${escapeHtml(m.name)}" loading="lazy">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8a978f;font-family:var(--font-mono);font-size:11px;">FOTO EM BREVE</div>`}
       </div>
       <div class="model-label">${escapeHtml(m.name)}</div>
     </div>
   `).join('') + `</div>`;
+
+  body.querySelectorAll('.fav-heart').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const active = toggleFavorite(btn.dataset.favTeam, btn.dataset.favModel, btn.dataset.favImg);
+      btn.classList.toggle('active', active);
+      showToast(active ? 'Adicionado aos favoritos' : 'Removido dos favoritos');
+    });
+  });
 
   body.querySelectorAll('.model-card').forEach(card => {
     card.addEventListener('click', () => openGalleryModal(teamItem, teamItem.models[Number(card.dataset.modelIdx)]));
@@ -1181,9 +1658,27 @@ function openGalleryModal(teamItem, model){
 
   showGalleryImage(0);
 
+  let selectedSize = '';
+  const sizeRow = document.getElementById('gallerySizeRow');
+  sizeRow.innerHTML = ["P","M","G","GG"].map(s => `<button class="opt-chip" data-size="${s}">${s}</button>`).join('');
+  sizeRow.querySelectorAll('.opt-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      selectedSize = chip.dataset.size;
+      sizeRow.querySelectorAll('.opt-chip').forEach(c => c.classList.remove('sel'));
+      chip.classList.add('sel');
+    });
+  });
+
+  document.getElementById('galleryAddCartBtn').onclick = () => {
+    if (!selectedSize){ showToast('Escolha um tamanho antes de adicionar ao carrinho'); return; }
+    addToCart({ team: teamItem.team, model: model.name, size: selectedSize, qty: 1, imageUrl: model.coverUrl });
+    showToast('Adicionado ao carrinho ✓');
+  };
+
   document.getElementById('galleryBuyBtn').onclick = () => {
     closeGalleryModal();
     closeTeamModal();
+    orderState.size = selectedSize || '';
     openOrderDrawer({ team: teamItem.team, model: model.name });
   };
 
@@ -1215,9 +1710,13 @@ const orderState = { team:"", model:"", size:"", qty:1, name:"", phone:"", cep:"
 let currentStep = 1;
 const TOTAL_STEPS = 6;
 
-function openOrderDrawer(prefill){
+let CART_CHECKOUT_MODE = false;
+function openOrderDrawer(prefill, cartMode){
+  CART_CHECKOUT_MODE = !!cartMode;
   if (prefill){ orderState.team = prefill.team; orderState.model = prefill.model; }
-  currentStep = 1;
+  currentStep = CART_CHECKOUT_MODE ? 4 : 1;
+  orderState.orderId = ''; // novo pedido = novo ID
+  orderState.mpPaid = false;
   document.getElementById('orderOverlay').classList.add('open');
   document.getElementById('orderDrawer').classList.add('open');
   renderStep();
@@ -1230,12 +1729,15 @@ document.getElementById('orderOverlay').addEventListener('click', closeOrderDraw
 document.getElementById('orderCloseBtn').addEventListener('click', closeOrderDrawer);
 
 function renderStep(){
-  document.getElementById('stepLabel').textContent = `Etapa ${currentStep} de ${TOTAL_STEPS}`;
-  document.getElementById('progressBar').style.width = `${(currentStep/TOTAL_STEPS)*100}%`;
+  const firstStep = CART_CHECKOUT_MODE ? 4 : 1;
+  const totalVisible = CART_CHECKOUT_MODE ? 3 : TOTAL_STEPS;
+  const stepNumber = CART_CHECKOUT_MODE ? (currentStep - 3) : currentStep;
+  document.getElementById('stepLabel').textContent = `Etapa ${stepNumber} de ${totalVisible}`;
+  document.getElementById('progressBar').style.width = `${(stepNumber/totalVisible)*100}%`;
   const body = document.getElementById('orderBody');
   const backBtn = document.getElementById('orderBackBtn');
   const nextBtn = document.getElementById('orderNextBtn');
-  backBtn.disabled = currentStep === 1;
+  backBtn.disabled = currentStep === firstStep;
   nextBtn.textContent = currentStep === TOTAL_STEPS ? "Enviar no WhatsApp" : "Avançar";
 
   if (currentStep === 1){
@@ -1339,15 +1841,19 @@ function renderStep(){
 
   if (currentStep === 6){
     if (!orderState.orderId) orderState.orderId = 'PED-' + Date.now();
+    const itemsSummary = CART_CHECKOUT_MODE
+      ? getCart().map(i => `<div><span>${escapeHtml(i.team)} — ${escapeHtml(i.model)}</span><b>${escapeHtml(i.size||'-')} × ${i.qty}</b></div>`).join('')
+      : `<div><span>Time</span><b>${escapeHtml(orderState.team||"—")}</b></div>
+         <div><span>Modelo</span><b>${escapeHtml(orderState.model||"—")}</b></div>
+         <div><span>Tamanho</span><b>${escapeHtml(orderState.size||"—")}</b></div>
+         <div><span>Quantidade</span><b>${escapeHtml(String(orderState.qty||1))}</b></div>`;
+
     body.innerHTML = `
       <div class="order-step">
         <h4>Confirme seu pedido</h4>
         <p class="hint">Pedido <b>${escapeHtml(orderState.orderId)}</b> — revise antes de enviar.</p>
         <div class="summary-box">
-          <div><span>Time</span><b>${escapeHtml(orderState.team||"—")}</b></div>
-          <div><span>Modelo</span><b>${escapeHtml(orderState.model||"—")}</b></div>
-          <div><span>Tamanho</span><b>${escapeHtml(orderState.size||"—")}</b></div>
-          <div><span>Quantidade</span><b>${escapeHtml(String(orderState.qty||1))}</b></div>
+          ${itemsSummary}
           <div><span>Nome</span><b>${escapeHtml(orderState.name||"—")}</b></div>
           <div><span>Telefone</span><b>${escapeHtml(orderState.phone||"—")}</b></div>
           <div><span>Cidade/UF</span><b>${escapeHtml(orderState.city||"—")}</b></div>
@@ -1373,7 +1879,7 @@ function renderMercadoPagoBox(){
   if (!box) return;
   if (orderState.payment !== 'Mercado Pago'){ box.innerHTML = ''; return; }
 
-  const scriptReady = CONFIG.appsScriptUrl && CONFIG.appsScriptUrl !== 'https://script.google.com/macros/s/AKfycbwjH_TQ2p7fpu8dIWO8kpdSNPSmXdaY2sG4W_cCDe7vrZW94s2-ihg0_Wa1Dv8VPTxRIA/exec';
+  const scriptReady = CONFIG.appsScriptUrl && CONFIG.appsScriptUrl !== 'COLE_AQUI_A_URL_DO_APPS_SCRIPT';
   if (!scriptReady){
     box.innerHTML = `<p class="hint">O pagamento automático ainda não foi configurado pela loja — escolha "A combinar no WhatsApp" por enquanto.</p>`;
     return;
@@ -1381,24 +1887,38 @@ function renderMercadoPagoBox(){
 
   if (!orderState.orderId) orderState.orderId = 'PED-' + Date.now();
   const unitPrice = parsePriceToNumber(CONFIG.defaultPrice);
+  const totalQty = CART_CHECKOUT_MODE ? getCart().reduce((s,i)=>s+Number(i.qty||1),0) : (orderState.qty || 1);
+  const totalValue = unitPrice * totalQty;
 
   box.innerHTML = `
     <a href="#" id="mpPayLink" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:6px;">
-      Pagar ${escapeHtml(CONFIG.defaultPrice)} × ${orderState.qty || 1} com Mercado Pago
+      Pagar ${totalValue.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})} com Mercado Pago
     </a>`;
   document.getElementById('mpPayLink').addEventListener('click', (ev) => {
     ev.preventDefault();
-    const params = new URLSearchParams({
-      action: 'create',
-      orderId: orderState.orderId,
-      team: orderState.team || '',
-      model: orderState.model || '',
-      size: orderState.size || '',
-      qty: orderState.qty || 1,
-      unitPrice: unitPrice,
-      buyerName: orderState.name || '',
-      buyerPhone: orderState.phone || ''
-    });
+    let params;
+    if (CART_CHECKOUT_MODE){
+      const cart = getCart();
+      params = new URLSearchParams({
+        action: 'create',
+        orderId: orderState.orderId,
+        items: JSON.stringify(cart.map(i => ({ title: `${i.team} - ${i.model} (${i.size||'-'})`, qty: i.qty, unitPrice }))),
+        buyerName: orderState.name || '',
+        buyerPhone: orderState.phone || ''
+      });
+    } else {
+      params = new URLSearchParams({
+        action: 'create',
+        orderId: orderState.orderId,
+        team: orderState.team || '',
+        model: orderState.model || '',
+        size: orderState.size || '',
+        qty: orderState.qty || 1,
+        unitPrice: unitPrice,
+        buyerName: orderState.name || '',
+        buyerPhone: orderState.phone || ''
+      });
+    }
     window.open(`${CONFIG.appsScriptUrl}?${params.toString()}`, '_blank', 'noopener');
   });
 }
@@ -1435,7 +1955,8 @@ function renderMercadoPagoReviewBox(){
 }
 
 document.getElementById('orderBackBtn').addEventListener('click', () => {
-  if (currentStep > 1){ currentStep--; renderStep(); }
+  const firstStep = CART_CHECKOUT_MODE ? 4 : 1;
+  if (currentStep > firstStep){ currentStep--; renderStep(); }
 });
 document.getElementById('orderNextBtn').addEventListener('click', () => {
   if (currentStep < TOTAL_STEPS){
@@ -1451,13 +1972,19 @@ function sendOrderToWhatsapp(){
     ? `Pagamento: Mercado Pago ${orderState.mpPaid ? "(cliente marcou como pago pelo link)" : "(ainda NÃO pago — confirmar)"}`
     : `Pagamento: ${orderState.payment || "-"}`;
 
+  const itemsLines = CART_CHECKOUT_MODE
+    ? getCart().map(i => `- ${i.team} — ${i.model} (Tam. ${i.size||'-'}, Qtd ${i.qty})`).join("\n")
+    : [
+        `Time: ${orderState.team || "-"}`,
+        `Modelo: ${orderState.model || "-"}`,
+        `Tamanho: ${orderState.size || "-"}`,
+        `Quantidade: ${orderState.qty || 1}`
+      ].join("\n");
+
   const msg = [
-    `Olá! Quero fazer um pedido:`,
+    `Olá! Quero fazer um pedido (${orderState.orderId}):`,
     ``,
-    `Time: ${orderState.team || "-"}`,
-    `Modelo: ${orderState.model || "-"}`,
-    `Tamanho: ${orderState.size || "-"}`,
-    `Quantidade: ${orderState.qty || 1}`,
+    itemsLines,
     ``,
     `Nome: ${orderState.name || "-"}`,
     `Telefone: ${orderState.phone || "-"}`,
@@ -1470,6 +1997,7 @@ function sendOrderToWhatsapp(){
 
   window.open(whatsappLink(msg), "_blank", "noopener");
   showToast("Pedido pronto! Continue a conversa no WhatsApp.");
+  if (CART_CHECKOUT_MODE){ saveCart([]); }
   closeOrderDrawer();
 }
 </script>
