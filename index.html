@@ -564,6 +564,15 @@
   .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--turf);}
   .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
 
+  /* Validação do assistente de pedido */
+  .field input.invalid, .field select.invalid, .field textarea.invalid{ border-color:#C0392B; background:#FFF6F5; }
+  .field-error{ color:#B42318; font-size:12.5px; margin-top:5px; }
+  .step-error{ color:#B42318; font-size:13.5px; font-weight:600; margin-top:12px; }
+  .cep-status{ font-size:12.5px; margin-top:5px; color:#57625B; min-height:1em; }
+  .cep-status.ok{ color:var(--turf); }
+  .cep-status.err{ color:#B42318; }
+  .field-row.city-uf{ grid-template-columns:1fr 100px; }
+
   .summary-box{
     background:#fff; border:1.5px dashed var(--line-soft); border-radius:12px; padding:16px;
     font-size:13.5px; margin-bottom:6px;
@@ -981,6 +990,12 @@ const CONFIG = {
     faq: "Liste aqui as perguntas mais comuns: prazo de entrega, formas de pagamento, tamanhos disponíveis, etc."
   }
 };
+
+// Aceita tanto a URL completa do Apps Script quanto só o ID da implantação
+// (o trecho que começa com "AKfycb..."). Se vier só o ID, monta a URL certa.
+if (CONFIG.appsScriptUrl && CONFIG.appsScriptUrl !== 'COLE_AQUI_A_URL_DO_APPS_SCRIPT' && !/^https?:\/\//i.test(CONFIG.appsScriptUrl)){
+  CONFIG.appsScriptUrl = 'https://script.google.com/macros/s/' + CONFIG.appsScriptUrl.trim() + '/exec';
+}
 
 /* ============================================================
    Utilidades
@@ -1706,7 +1721,147 @@ document.getElementById('galleryBackBtn').addEventListener('click', closeGallery
    (não é um bot autônomo: monta a mensagem e entrega o
    atendimento para vocês continuarem no WhatsApp Business)
    ============================================================ */
-const orderState = { team:"", model:"", size:"", qty:1, name:"", phone:"", cep:"", address:"", city:"", payment:"" };
+const orderState = { team:"", model:"", size:"", qty:1, name:"", phone:"", cep:"", street:"", number:"", complement:"", neighborhood:"", city:"", uf:"", payment:"" };
+
+/* ---------- Máscaras e formatação ---------- */
+function onlyDigits(v){ return String(v || "").replace(/\D/g, ""); }
+function maskCep(v){
+  const d = onlyDigits(v).slice(0, 8);
+  return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
+}
+function maskPhone(v){
+  let d = onlyDigits(v);
+  if (d.startsWith("55") && d.length > 11) d = d.slice(2); // aceita colar com +55
+  d = d.slice(0, 11);
+  if (!d) return "";
+  if (d.length <= 2) return "(" + d;
+  if (d.length <= 6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+}
+function isValidPhone(v){
+  let d = onlyDigits(v);
+  if ((d.length === 12 || d.length === 13) && d.startsWith("55")) d = d.slice(2);
+  if (d.length !== 10 && d.length !== 11) return false;
+  if (!/^[1-9][1-9]/.test(d)) return false;        // DDD válido (11 a 99)
+  if (d.length === 11 && d[2] !== "9") return false; // celular começa com 9
+  return true;
+}
+function formatAddress(){
+  const parts = [`${(orderState.street||"").trim()}, ${(orderState.number||"").trim()}`];
+  if ((orderState.complement||"").trim()) parts.push(orderState.complement.trim());
+  if ((orderState.neighborhood||"").trim()) parts.push(orderState.neighborhood.trim());
+  return parts.join(" - ");
+}
+function formatCityUf(){
+  return `${(orderState.city||"").trim()}/${(orderState.uf||"").trim().toUpperCase()}`;
+}
+
+/* ---------- Validação por etapa ---------- */
+// Cada erro aponta o id do campo (ou do grupo de botões) e a mensagem.
+function validateStep(step){
+  const errors = [];
+  const add = (field, msg) => errors.push({ field, msg });
+  const t = (x) => String(x || "").trim();
+
+  if (step === 1 && !orderState.team) add("optTeam", "Escolha um time para continuar.");
+  if (step === 2 && !orderState.model) add("optModel", "Escolha um modelo para continuar.");
+  if (step === 3){
+    if (!orderState.size) add("optSize", "Escolha um tamanho para continuar.");
+    const q = Number(orderState.qty);
+    if (!Number.isInteger(q) || q < 1) add("qtyInput", "Informe uma quantidade de 1 ou mais.");
+  }
+  if (step === 4){
+    const name = t(orderState.name);
+    if (name.length < 5 || name.split(/\s+/).length < 2) add("nameInput", "Informe seu nome completo (nome e sobrenome).");
+    if (!isValidPhone(orderState.phone)) add("phoneInput", "Informe um telefone com DDD, ex.: (85) 98888-7777.");
+  }
+  if (step === 5){
+    if (onlyDigits(orderState.cep).length !== 8) add("cepInput", "Informe um CEP com 8 números.");
+    if (!t(orderState.street)) add("streetInput", "Informe a rua.");
+    if (!t(orderState.number)) add("numberInput", "Informe o número (ou S/N).");
+    if (!t(orderState.neighborhood)) add("neighborhoodInput", "Informe o bairro.");
+    if (!t(orderState.city)) add("cityInput", "Informe a cidade.");
+    if (!/^[A-Za-z]{2}$/.test(t(orderState.uf))) add("ufInput", "UF com 2 letras.");
+    if (!orderState.payment) add("paymentInput", "Escolha a forma de pagamento.");
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+function clearFieldError(el){
+  if (!el) return;
+  el.classList.remove("invalid");
+  const next = el.nextElementSibling;
+  if (next && next.classList.contains("field-error")) next.remove();
+}
+function clearStepErrors(){
+  document.querySelectorAll("#orderBody .step-error, #orderBody .field-error").forEach(e => e.remove());
+  document.querySelectorAll("#orderBody .invalid").forEach(e => e.classList.remove("invalid"));
+}
+function showStepErrors(errors){
+  clearStepErrors();
+  let first = null;
+  errors.forEach(({ field, msg }) => {
+    const el = document.getElementById(field);
+    if (!el) return;
+    const isInput = ["INPUT", "SELECT", "TEXTAREA"].includes(el.tagName);
+    if (isInput){
+      el.classList.add("invalid");
+      el.insertAdjacentHTML("afterend", `<div class="field-error" role="alert">${escapeHtml(msg)}</div>`);
+    } else {
+      el.insertAdjacentHTML("afterend", `<div class="step-error" role="alert">${escapeHtml(msg)}</div>`);
+    }
+    if (!first) first = el;
+  });
+  if (first){
+    first.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (typeof first.focus === "function" && ["INPUT", "SELECT", "TEXTAREA"].includes(first.tagName)) first.focus({ preventScroll: true });
+  }
+}
+
+/* ---------- Preenchimento automático do endereço pelo CEP (ViaCEP) ---------- */
+let cepLookupSeq = 0;
+let lastCepLooked = "";
+function setCepStatus(msg, kind){
+  const el = document.getElementById("cepStatus");
+  if (!el) return;
+  el.textContent = msg;
+  el.className = "cep-status" + (kind ? " " + kind : "");
+}
+async function lookupCep(){
+  const cep = onlyDigits(orderState.cep);
+  if (cep.length !== 8){ lastCepLooked = ""; setCepStatus("", ""); return; }
+  if (cep === lastCepLooked) return;
+  const mySeq = ++cepLookupSeq;
+  setCepStatus("Buscando endereço…", "");
+  try{
+    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (mySeq !== cepLookupSeq) return; // chegou resposta de uma busca antiga
+    if (data.erro){
+      setCepStatus("CEP não encontrado. Confira o número ou preencha o endereço manualmente.", "err");
+      return;
+    }
+    lastCepLooked = cep;
+    const setField = (id, key, val) => {
+      orderState[key] = val || "";
+      const el = document.getElementById(id);
+      if (el){ el.value = val || ""; clearFieldError(el); }
+    };
+    setField("streetInput", "street", data.logradouro);
+    setField("neighborhoodInput", "neighborhood", data.bairro);
+    setField("cityInput", "city", data.localidade);
+    setField("ufInput", "uf", data.uf);
+    setCepStatus("✓ Endereço encontrado. Confira e informe o número.", "ok");
+    const next = document.getElementById(data.logradouro ? "numberInput" : "streetInput");
+    if (next) next.focus();
+  } catch(err){
+    if (mySeq !== cepLookupSeq) return;
+    console.error("Erro ao buscar CEP:", err);
+    setCepStatus("Não foi possível buscar agora. Preencha o endereço manualmente.", "err");
+  }
+}
 let currentStep = 1;
 const TOTAL_STEPS = 6;
 
@@ -1752,6 +1907,7 @@ function renderStep(){
       </div>`;
     body.querySelectorAll('#optTeam .opt-chip').forEach(b => b.addEventListener('click', () => {
       orderState.team = b.dataset.v;
+      clearStepErrors();
       body.querySelectorAll('#optTeam .opt-chip').forEach(x=>x.classList.remove('sel'));
       b.classList.add('sel');
     }));
@@ -1771,6 +1927,7 @@ function renderStep(){
       </div>`;
     body.querySelectorAll('#optModel .opt-chip').forEach(b => b.addEventListener('click', () => {
       orderState.model = b.dataset.v;
+      clearStepErrors();
       body.querySelectorAll('#optModel .opt-chip').forEach(x=>x.classList.remove('sel'));
       b.classList.add('sel');
     }));
@@ -1791,10 +1948,11 @@ function renderStep(){
       </div>`;
     body.querySelectorAll('#optSize .opt-chip').forEach(b => b.addEventListener('click', () => {
       orderState.size = b.dataset.v;
+      clearStepErrors();
       body.querySelectorAll('#optSize .opt-chip').forEach(x=>x.classList.remove('sel'));
       b.classList.add('sel');
     }));
-    document.getElementById('qtyInput').addEventListener('input', e => orderState.qty = e.target.value);
+    document.getElementById('qtyInput').addEventListener('input', e => { orderState.qty = e.target.value; clearFieldError(e.target); });
   }
 
   if (currentStep === 4){
@@ -1802,23 +1960,40 @@ function renderStep(){
       <div class="order-step">
         <h4>Seus dados</h4>
         <p class="hint">Para confirmarmos o pedido com você.</p>
-        <div class="field"><label for="nameInput">Nome completo</label><input id="nameInput" type="text" value="${escapeHtml(orderState.name)}"></div>
-        <div class="field"><label for="phoneInput">Telefone / WhatsApp</label><input id="phoneInput" type="tel" value="${escapeHtml(orderState.phone)}"></div>
+        <div class="field"><label for="nameInput">Nome completo</label><input id="nameInput" type="text" autocomplete="name" value="${escapeHtml(orderState.name)}"></div>
+        <div class="field"><label for="phoneInput">Telefone / WhatsApp</label><input id="phoneInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="(85) 98888-7777" value="${escapeHtml(orderState.phone)}"></div>
       </div>`;
-    document.getElementById('nameInput').addEventListener('input', e => orderState.name = e.target.value);
-    document.getElementById('phoneInput').addEventListener('input', e => orderState.phone = e.target.value);
+    document.getElementById('nameInput').addEventListener('input', e => { orderState.name = e.target.value; clearFieldError(e.target); });
+    document.getElementById('phoneInput').addEventListener('input', e => {
+      e.target.value = maskPhone(e.target.value);
+      orderState.phone = e.target.value;
+      clearFieldError(e.target);
+    });
   }
 
   if (currentStep === 5){
+    const v = (x) => escapeHtml(x || "");
     body.innerHTML = `
       <div class="order-step">
         <h4>Endereço de entrega</h4>
-        <p class="hint">Usado para calcular e enviar seu pedido.</p>
+        <p class="hint">Digite o CEP e preenchemos o endereço para você.</p>
         <div class="field-row">
-          <div class="field"><label for="cepInput">CEP</label><input id="cepInput" type="text" value="${escapeHtml(orderState.cep)}"></div>
-          <div class="field"><label for="cityInput">Cidade / UF</label><input id="cityInput" type="text" value="${escapeHtml(orderState.city)}"></div>
+          <div class="field">
+            <label for="cepInput">CEP</label>
+            <input id="cepInput" type="text" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="00000-000" value="${v(orderState.cep)}">
+            <div class="cep-status" id="cepStatus"></div>
+          </div>
+          <div class="field"><label for="numberInput">Número</label><input id="numberInput" type="text" autocomplete="off" value="${v(orderState.number)}"></div>
         </div>
-        <div class="field"><label for="addrInput">Endereço completo (rua, número, bairro)</label><textarea id="addrInput" rows="3">${escapeHtml(orderState.address)}</textarea></div>
+        <div class="field"><label for="streetInput">Rua</label><input id="streetInput" type="text" autocomplete="address-line1" value="${v(orderState.street)}"></div>
+        <div class="field-row">
+          <div class="field"><label for="neighborhoodInput">Bairro</label><input id="neighborhoodInput" type="text" autocomplete="off" value="${v(orderState.neighborhood)}"></div>
+          <div class="field"><label for="complementInput">Complemento (opcional)</label><input id="complementInput" type="text" autocomplete="off" value="${v(orderState.complement)}"></div>
+        </div>
+        <div class="field-row city-uf">
+          <div class="field"><label for="cityInput">Cidade</label><input id="cityInput" type="text" autocomplete="address-level2" value="${v(orderState.city)}"></div>
+          <div class="field"><label for="ufInput">UF</label><input id="ufInput" type="text" maxlength="2" autocomplete="address-level1" value="${v(orderState.uf)}"></div>
+        </div>
         <div class="field">
           <label for="paymentInput">Forma de pagamento preferida</label>
           <select id="paymentInput">
@@ -1829,11 +2004,26 @@ function renderStep(){
         </div>
         <div id="mpPayBox"></div>
       </div>`;
-    document.getElementById('cepInput').addEventListener('input', e => orderState.cep = e.target.value);
-    document.getElementById('cityInput').addEventListener('input', e => orderState.city = e.target.value);
-    document.getElementById('addrInput').addEventListener('input', e => orderState.address = e.target.value);
+
+    const bind = (id, key, fmt) => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', e => {
+        if (fmt) e.target.value = fmt(e.target.value);
+        orderState[key] = e.target.value;
+        clearFieldError(e.target);
+      });
+      return el;
+    };
+    bind('cepInput', 'cep', maskCep).addEventListener('input', lookupCep);
+    bind('numberInput', 'number');
+    bind('streetInput', 'street');
+    bind('neighborhoodInput', 'neighborhood');
+    bind('complementInput', 'complement');
+    bind('cityInput', 'city');
+    bind('ufInput', 'uf', x => x.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 2));
     document.getElementById('paymentInput').addEventListener('change', e => {
       orderState.payment = e.target.value;
+      clearFieldError(e.target);
       renderMercadoPagoBox();
     });
     renderMercadoPagoBox();
@@ -1856,7 +2046,8 @@ function renderStep(){
           ${itemsSummary}
           <div><span>Nome</span><b>${escapeHtml(orderState.name||"—")}</b></div>
           <div><span>Telefone</span><b>${escapeHtml(orderState.phone||"—")}</b></div>
-          <div><span>Cidade/UF</span><b>${escapeHtml(orderState.city||"—")}</b></div>
+          <div><span>Endereço</span><b>${escapeHtml(formatAddress())}</b></div>
+          <div><span>Cidade/UF · CEP</span><b>${escapeHtml(formatCityUf())} · ${escapeHtml(orderState.cep||"—")}</b></div>
           <div><span>Pagamento</span><b>${escapeHtml(orderState.payment||"—")}</b></div>
           ${orderState.payment==='Mercado Pago' ? `<div><span>Status</span><b id="mpStatusText">${orderState.mpPaid ? "Pago ✓" : "Ainda não pago"}</b></div>` : ``}
         </div>
@@ -1896,6 +2087,8 @@ function renderMercadoPagoBox(){
     </a>`;
   document.getElementById('mpPayLink').addEventListener('click', (ev) => {
     ev.preventDefault();
+    const check = validateStep(5);
+    if (!check.ok){ showStepErrors(check.errors); return; }
     let params;
     if (CART_CHECKOUT_MODE){
       const cart = getCart();
@@ -1904,7 +2097,10 @@ function renderMercadoPagoBox(){
         orderId: orderState.orderId,
         items: JSON.stringify(cart.map(i => ({ title: `${i.team} - ${i.model} (${i.size||'-'})`, qty: i.qty, unitPrice }))),
         buyerName: orderState.name || '',
-        buyerPhone: orderState.phone || ''
+        buyerPhone: orderState.phone || '',
+        cep: orderState.cep || '',
+        address: formatAddress(),
+        cityUf: formatCityUf()
       });
     } else {
       params = new URLSearchParams({
@@ -1916,7 +2112,10 @@ function renderMercadoPagoBox(){
         qty: orderState.qty || 1,
         unitPrice: unitPrice,
         buyerName: orderState.name || '',
-        buyerPhone: orderState.phone || ''
+        buyerPhone: orderState.phone || '',
+        cep: orderState.cep || '',
+        address: formatAddress(),
+        cityUf: formatCityUf()
       });
     }
     window.open(`${CONFIG.appsScriptUrl}?${params.toString()}`, '_blank', 'noopener');
@@ -1960,6 +2159,8 @@ document.getElementById('orderBackBtn').addEventListener('click', () => {
 });
 document.getElementById('orderNextBtn').addEventListener('click', () => {
   if (currentStep < TOTAL_STEPS){
+    const check = validateStep(currentStep);
+    if (!check.ok){ showStepErrors(check.errors); return; }
     currentStep++;
     renderStep();
   } else {
@@ -1989,9 +2190,9 @@ function sendOrderToWhatsapp(){
     `Nome: ${orderState.name || "-"}`,
     `Telefone: ${orderState.phone || "-"}`,
     ``,
-    `Endereço: ${orderState.address || "-"}`,
+    `Endereço: ${formatAddress()}`,
     `CEP: ${orderState.cep || "-"}`,
-    `Cidade/UF: ${orderState.city || "-"}`,
+    `Cidade/UF: ${formatCityUf()}`,
     paymentLine
   ].join("\n");
 
